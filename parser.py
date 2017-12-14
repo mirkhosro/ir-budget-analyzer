@@ -6,7 +6,7 @@ import logging
 
 
 logging.basicConfig(#filename = "log.txt",
-    level = logging.INFO,
+    level = logging.DEBUG,
     format = "%(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 
@@ -60,12 +60,11 @@ def parse_text_file(in_file_path, out_file_path):
         if line == "":
             continue
         line = normalize_text(line, form_map)
-        logger.debug(line)
         ## the end token is when we see one (and only one) number
         ## which must be the page number
         is_new_row = False
         parts = delimiter.split(line)
-        if (len(parts) == 15):
+        if (len(parts) >= 15):
             is_new_row = True
             is_data_section = True
         if line.isnumeric():
@@ -74,8 +73,10 @@ def parse_text_file(in_file_path, out_file_path):
             csv_w.writerow({"code": code, "title": title, "amount": amount})
         if is_data_section:
             if is_new_row:
+                if (len(parts) > 15):
+                    logger.debug(parts)
                 code = parts[-1]
-                title = parts[-2]
+                title = " ".join(parts[13:-1])
                 amount = parts[0].replace(",", "")
                 is_first_row = False
             else:
