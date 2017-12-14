@@ -5,6 +5,11 @@ import sys
 import logging
 
 
+logging.basicConfig(#filename = "log.txt",
+    level = logging.INFO,
+    format = "%(levelname)s - %(message)s")
+logger = logging.getLogger(__name__)
+
 delimiter = re.compile(r"\s\s+")
 #control_chars = re.compile(r"\u202a|\u202b|\u202c")
 table_data_start = "پیوست 1"
@@ -45,7 +50,9 @@ def parse_text_file(in_file_path, out_file_path):
     csv_w.writeheader()
     ## map from Persian presentation form to regular form
     form_map = init_form_map("form_map.csv")
-    is_write_ready = False
+    is_error = False
+    is_first_row = True
+    is_data_section = False
     
     for line in in_file:
         line = line.strip()
@@ -53,37 +60,37 @@ def parse_text_file(in_file_path, out_file_path):
         if line == "":
             continue
         line = normalize_text(line, form_map)
-        print(line)
+        logger.debug(line)
         ## the end token is when we see one (and only one) number
         ## which must be the page number
+        is_new_row = False
+        parts = delimiter.split(line)
+        if (len(parts) == 15):
+            is_new_row = True
+            is_data_section = True
         if line.isnumeric():
-            is_parsing = False
-
-        ## actually read and parse the data
-        if is_parsing:
-            parts = delimiter.split(line)
-            ## save to file
-            if (len(parts) == 15):
-                if (is_write_ready):
-                    csv_w.writerow({"code": code, "title": title, "amount": amount})
+            is_data_section = False
+        if not is_first_row and is_new_row:
+            csv_w.writerow({"code": code, "title": title, "amount": amount})
+        if is_data_section:
+            if is_new_row:
                 code = parts[-1]
                 title = parts[-2]
                 amount = parts[0].replace(",", "")
-                is_write_ready = True
+                is_first_row = False
             else:
-                #csv_w.writerow({"code": "", "title": line, "amount": ""})
                 title += " " + line
                 
         ## determine start and end of the table using special lines
         ## this is the token for beginning of the data section of a table
-        if line == table_data_start:
-            is_parsing = True
+        # if line == table_data_start:
+        #     is_parsing = True
     
     in_file.close()
     out_file.close()
 
 
 if __name__ == "__main__":
-    parse_text_file("1397-pp64-65.txt", "output.csv")
+    parse_text_file("1397.txt", "output.csv")
 
     
