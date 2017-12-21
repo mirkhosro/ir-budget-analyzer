@@ -23,11 +23,11 @@ if __name__ == "__main__":
         in_file = open(in_file_path, newline = "")
         csv_r = csv.reader(in_file)
         ## first output file is for level 1 org budgets
-        out_file_1 = open("level1_" + in_file_path, "w", newline = "")
+        out_file_1 = open(in_file_path + "_level1.csv", "w", newline = "")
         csv_w1 = csv.writer(out_file_1)
         csv_w1.writerow(["code", "title", "amount_mR", "amount_bT"])
         ## second output file is for level 2 org budgets
-        out_file_2 = open("level2_" + in_file_path, "w", newline = "")
+        out_file_2 = open(in_file_path + "_level2.csv", "w", newline = "")
         csv_w2 = csv.writer(out_file_2)
         csv_w2.writerow(["code", "sub_code", "subtitle", "title", "amount_mR", "amount_bT"])
         ## discard header
